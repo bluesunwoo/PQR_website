@@ -120,7 +120,6 @@ test('network, HTTP, non-JSON, API errors and invalid rows show retry without st
     async () => ({ ok: false, status: 503 }),
     async () => ({ ok: true, json: async () => { throw new SyntaxError('HTML login page'); } }),
     async () => response({ error: 'missing sheet' }),
-    async () => response([session(1), session(1)]),
     async () => response([{ title: 'Missing number' }]),
     async () => response([session(1, { photos: '[bad json' })])
   ];
@@ -246,4 +245,34 @@ test('current Sheet date text and empty optional cells display correctly', async
   assert.equal(elements.posterTitle.textContent, 'First talk');
   assert.equal(elements.photoGallery.innerHTML, '<placeholder-photos>');
   assert.equal(elements.sessionPpt.hidden, true);
+});
+
+test('two presentations with the same Number both load and remain separately selectable', async () => {
+  // Regression: the live Sheet has two talks under session 4 on the same date.
+  const { elements, errors } = createPage(async () => response([
+    {
+      Number: '4', Title: 'Femtosecond Laser Micromachining for Ion Traps',
+      Date: 'Tue Nov 09 2027 00:00:00 GMT+0900 (한국 표준시)', Presenter: '발표자',
+      posterTitle: '', 'poster(drive link)': '', photo1: '', photo2: '', photo3: '', ppt: ''
+    },
+    {
+      Number: '4', Title: '양자역학과 선형대수학 입문',
+      Date: 'Tue Nov 09 2027 00:00:00 GMT+0900 (한국 표준시)', Presenter: '',
+      posterTitle: '', 'poster(drive link)': '', photo1: '', photo2: '', photo3: '', ppt: ''
+    }
+  ]));
+  elements.openJournalClub.click();
+  await settle();
+  assert.equal(errors.length, 0);
+  assert.equal(elements.journalState.hidden, true);
+  assert.equal(elements.sessionList.children.length, 2);
+  assert.equal(elements.sessionTitle.textContent, 'Femtosecond Laser Micromachining for Ion Traps');
+  assert.equal(elements.sessionDate.textContent, '2027.11.09');
+  assert.equal(elements.sessionTag.textContent, 'JOURNAL CLUB · SESSION 04');
+  assert.equal(elements.sessionCount.textContent, '01 / 02');
+  elements.sessionList.children[1].click();
+  assert.equal(elements.sessionTitle.textContent, '양자역학과 선형대수학 입문');
+  assert.equal(elements.sessionSpeaker.textContent, '발표자 미정');
+  assert.equal(elements.sessionTag.textContent, 'JOURNAL CLUB · SESSION 04');
+  assert.equal(elements.sessionCount.textContent, '02 / 02');
 });

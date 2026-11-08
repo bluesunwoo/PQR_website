@@ -73,7 +73,6 @@
   function normalizeSessions(payload) {
     // Use the existing Sheet headers. Lowercase keys also support previously prepared data.
     if (!Array.isArray(payload)) throw new Error('발표 목록 응답이 배열이 아닙니다.');
-    const seen = new Set();
     return payload.map((row, index) => {
       if (!row || typeof row !== 'object' || Array.isArray(row)) {
         throw new Error(`${index + 1}번째 발표 데이터 형식이 올바르지 않습니다.`);
@@ -83,8 +82,7 @@
       if (!Number.isSafeInteger(number) || number < 1 || !title) {
         throw new Error(`${index + 1}번째 발표의 Number 또는 Title을 확인해 주세요.`);
       }
-      if (seen.has(number)) throw new Error(`발표 회차 ${number}이 중복되었습니다.`);
-      seen.add(number);
+      // Multiple presentations may belong to the same Journal Club session number.
       let photos = row.photos;
       if (typeof photos === 'string') {
         photos = photos.trim().startsWith('[') ? JSON.parse(photos) : photos.split(/\r?\n/);
