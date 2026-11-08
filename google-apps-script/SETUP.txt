@@ -1,0 +1,48 @@
+PQR Journal Club 연동
+
+현재 Apps Script를 그대로 사용합니다. 코드 교체나 재배포는 필요하지 않습니다.
+이전에 준비했던 교체용 Code.gs와 setupJournalClubSheet는 더 이상 사용하지 않습니다.
+
+스프레드시트:
+https://docs.google.com/spreadsheets/d/1PyEs1-Qtk9vqOT5D8FOVEbR9KxsjEoYXf9rHMWBtIJ8/edit
+
+웹 API (journal-club.js에 설정됨):
+https://script.google.com/macros/s/AKfycbxJtWIkKf2geBgeAim-xndlqQgvHd4k8qod2_oRASV3iY9JXdoSWsek_-TqTNjxHX63MA/exec
+
+적용 방법
+1. 스프레드시트의 첫 번째 탭을 사용합니다. 현재 Apps Script가 getSheets()[0]을 읽습니다.
+   탭 이름은 자유롭게 지정할 수 있습니다.
+2. A~J열의 첫 행은 아래 열 이름을 유지하고, 2행부터 발표 데이터를 입력합니다.
+3. 수정한 activities.html과 journal-club.js를 웹사이트에 함께 배포합니다.
+4. 이후에는 시트만 수정하고 Journal Club 팝업을 다시 열면 새 데이터를 불러옵니다.
+
+시트 형식 (현재 열 이름을 그대로 사용)
+A Number             : 회차. 중복 없는 1 이상의 정수. 큰 회차가 먼저 표시됩니다.
+B Title              : 발표 제목. 필수입니다.
+C Date               : 발표일. Google Sheets 날짜 셀 또는 2026.11.08 형태의 텍스트.
+D Presenter          : 발표자.
+E posterTitle        : 포스터가 없을 때 표시할 제목. 셀 내부 줄바꿈 또는 \n 사용 가능.
+F poster(drive link) : 포스터 이미지 URL. 없으면 비워 둡니다.
+G photo1             : 현장 사진 URL 1.
+H photo2             : 현장 사진 URL 2.
+I photo3             : 현장 사진 URL 3.
+J ppt                : PPT/PDF/Google Slides 열람 URL.
+
+자료 링크
+- URL을 셀 값으로 직접 붙여넣습니다. 파일 칩이나 링크 표시 문구 대신 전체 주소를 입력합니다.
+- Google Drive 이미지 파일의 /file/d/ID/view 공유 링크를 사용할 수 있습니다.
+  사이트는 이미지 링크를 썸네일 URL로 바꿉니다. 파일은 방문자가 열 수 있어야 합니다.
+- PPT/PDF는 Google Drive 또는 Google Slides의 열람 링크를 사용할 수 있습니다.
+- 이미지가 로드되지 않으면 포스터 기본 화면 또는 사진 안내가 표시됩니다.
+- 빈 이미지/PPT 셀은 빈칸으로 둡니다.
+
+운영
+- 현재 Apps Script가 Number가 빈 행은 제외합니다.
+- Number와 Title은 채워 주세요. Number가 중복되거나 형식이 잘못되면 오류 안내가 표시됩니다.
+- 날짜 셀의 String(Date) 결과와 일반 날짜 텍스트를 모두 표시할 수 있습니다.
+- 시트의 발표 행 수정은 Apps Script 재배포 없이 반영됩니다.
+- Journal Club 팝업을 열 때마다 새로 읽습니다. 빈 목록과 오류 화면에서도 다시 읽을 수 있습니다.
+- 현재 Apps Script는 첫 번째 탭의 모든 열을 JSON으로 반환합니다.
+
+공식 문서
+https://developers.google.com/apps-script/guides/content

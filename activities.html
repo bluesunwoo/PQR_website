@@ -125,6 +125,40 @@
       flex: 1;
     }
 
+    .jc-sidebar[hidden], .jc-detail[hidden], .jc-state[hidden] { display: none; }
+
+    .jc-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 220px;
+      flex: 1;
+    }
+
+    .jc-state p { margin: 0; }
+    .jc-retry {
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 14px;
+      background: #fff;
+      color: var(--navy);
+      font: inherit;
+      cursor: pointer;
+    }
+    .jc-retry[hidden] { display: none; }
+
+    .jc-media-fallback { margin: 0; padding: 24px; color: #76859a; font-size: 12px; }
+    .jc-poster-image { display: block; width: 100%; height: 100%; object-fit: contain; background: #eef2f7; }
+    .jc-gallery-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+
     .jc-sidebar {
       padding: 22px 14px;
       background: #f7f8fa;
@@ -591,16 +625,20 @@
         </button>
       </header>
 
-      <div class="jc-content">
+      <div class="jc-content" id="journalContent" aria-busy="false">
+        <div class="jc-state" id="journalState">
+          <p id="journalStatus" role="status" aria-live="polite">발표 기록을 불러오는 중입니다.</p>
+          <button class="jc-retry" id="journalRetry" type="button" hidden>다시 불러오기</button>
+        </div>
         <!-- 사이드바 세션 목록 -->
-        <aside class="jc-sidebar" aria-label="발표 회차 선택">
+        <aside class="jc-sidebar" id="journalSidebar" aria-label="발표 회차 선택" hidden>
           <div class="jc-sidebar-title">SESSION ARCHIVE</div>
           <div class="jc-sidebar-list" id="sessionList"></div>
           <p class="jc-sidebar-foot">새 발표를 추가하면 최신 회차부터 목록에 표시됩니다.</p>
         </aside>
 
         <!-- 세션 상세 -->
-        <article class="jc-detail" id="journalDetail">
+        <article class="jc-detail" id="journalDetail" hidden>
           <div class="jc-topline">
             <span class="jc-small-label" id="sessionTag">JOURNAL CLUB · SESSION 01</span>
             <span class="jc-counter" id="sessionCount">01 / 01</span>
@@ -670,8 +708,7 @@
 
           <div class="jc-bottom">
             <p class="jc-bottom-note">
-              * 포스터·사진·PPT 파일을 등록하면 이 자리에 표시됩니다.<br>
-              아래 JS 배열에 데이터를 추가하세요.
+              발표 자료와 현장 사진은 등록된 회차에서 확인할 수 있습니다.
             </p>
             <a class="jc-ppt" id="sessionPpt" href="#" target="_blank" rel="noopener" hidden>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
@@ -720,175 +757,6 @@
   </footer>
 
   <script src="main.js"></script>
-  <script>
-  // ============================================================
-  //  Journal Club 세션 데이터
-  //  새 발표 추가 시: 맨 위에 객체 하나 추가하고 number 순서 맞추면 됩니다.
-  //
-  //  poster: 'images/session-03-poster.jpg'   (없으면 null)
-  //  photos: ['images/s3-1.jpg', 'images/s3-2.jpg']  (없으면 [])
-  //  ppt:    'slides/session-03.pdf'           (없으면 null)
-  // ============================================================
-  const journalSessions = [
-    {
-      number: 3,
-      title: 'Quantum Entanglement & Bell Tests',
-      date: 'YYYY.MM.DD',
-      speaker: '발표자 입력',
-      posterTitle: 'QUANTUM\nENTANGLEMENT',
-      poster: null,
-      photos: [],
-      ppt: null
-    },
-    {
-      number: 2,
-      title: 'Topological Quantum Computing',
-      date: 'YYYY.MM.DD',
-      speaker: '발표자 입력',
-      posterTitle: 'TOPOLOGICAL\nQUANTUM',
-      poster: null,
-      photos: [],
-      ppt: null
-    },
-    {
-      number: 1,
-      title: 'Superconducting Qubits',
-      date: 'YYYY.MM.DD',
-      speaker: '발표자 입력',
-      posterTitle: 'SUPER-\nCONDUCTING',
-      poster: null,
-      photos: [],
-      ppt: null
-    }
-  ];
-
-  // ── DOM refs ──
-  const overlay      = document.getElementById('journalOverlay');
-  const dialog       = overlay.querySelector('[role="dialog"]');
-  const shell        = document.getElementById('site-shell');
-  const list         = document.getElementById('sessionList');
-  const photoGallery = document.getElementById('photoGallery');
-  const posterFrame  = document.getElementById('posterFrame');
-  const placeholderPoster  = posterFrame.innerHTML;
-  const placeholderGallery = photoGallery.innerHTML;
-  let lastFocused = null;
-
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
-    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-
-  // ── 세션 선택 ──
-  function selectSession(index) {
-    const d = journalSessions[index];
-    if (!d) return;
-
-    document.getElementById('sessionTag').textContent =
-      `JOURNAL CLUB · SESSION ${String(d.number).padStart(2, '0')}`;
-    document.getElementById('sessionCount').textContent =
-      `${String(d.number).padStart(2, '0')} / ${String(journalSessions.length).padStart(2, '0')}`;
-    document.getElementById('sessionTitle').textContent   = d.title;
-    document.getElementById('sessionDate').textContent    = d.date;
-    document.getElementById('sessionSpeaker').textContent = d.speaker;
-
-    // 포스터
-    if (d.poster) {
-      posterFrame.innerHTML =
-        `<img src="${esc(d.poster)}" alt="${esc(d.title)} 포스터"
-              style="display:block;width:100%;height:100%;object-fit:contain;background:#eef2f7">`;
-    } else {
-      posterFrame.innerHTML = placeholderPoster;
-      const pt = document.getElementById('posterTitle');
-      if (pt) pt.innerHTML = esc(d.posterTitle).replace(/\n/g, '<br>');
-    }
-
-    // 사진
-    if (d.photos && d.photos.length) {
-      photoGallery.innerHTML =
-        `<div class="jc-gallery-main" style="position:relative">
-           <img src="${esc(d.photos[0])}" alt="${esc(d.title)} 사진 1"
-                style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
-         </div>
-         ${d.photos.length > 1
-           ? `<div class="jc-gallery-thumbs">
-                ${d.photos.slice(1, 3).map((src, i) =>
-                  `<img src="${esc(src)}" alt="사진 ${i + 2}"
-                        style="width:100%;height:100px;object-fit:cover;border-radius:8px">`
-                ).join('')}
-              </div>`
-           : ''}`;
-    } else {
-      photoGallery.innerHTML = placeholderGallery;
-    }
-
-    // PPT
-    const pptEl = document.getElementById('sessionPpt');
-    pptEl.hidden = !d.ppt;
-    if (d.ppt) pptEl.href = d.ppt;
-
-    // 사이드바 선택 상태
-    [...list.querySelectorAll('.jc-session')].forEach((btn, i) => {
-      btn.classList.toggle('selected', i === index);
-      btn.setAttribute('aria-current', i === index ? 'true' : 'false');
-    });
-
-    document.getElementById('journalDetail').scrollTop = 0;
-  }
-
-  // ── 세션 목록 빌드 ──
-  function buildSessions() {
-    list.innerHTML = '';
-    journalSessions.forEach((d, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'jc-session';
-      btn.type = 'button';
-      btn.innerHTML =
-        `<span class="jc-session-number">${String(d.number).padStart(2, '0')}</span>
-         <span class="jc-session-copy">
-           <span class="jc-session-date">${esc(d.date)}</span>
-           <span class="jc-session-title">${esc(d.title)}</span>
-         </span>`;
-      btn.addEventListener('click', () => selectSession(i));
-      list.appendChild(btn);
-    });
-    selectSession(0);
-  }
-
-  // ── 열기 / 닫기 ──
-  function openDialog() {
-    lastFocused = document.activeElement;
-    buildSessions();
-    overlay.hidden = false;
-    document.body.style.overflow = 'hidden';
-    shell.setAttribute('inert', '');
-    dialog.focus();
-  }
-
-  function closeDialog() {
-    overlay.hidden = true;
-    document.body.style.overflow = '';
-    shell.removeAttribute('inert');
-    lastFocused?.focus?.();
-  }
-
-  document.getElementById('openJournalClub').addEventListener('click', openDialog);
-  document.getElementById('journalClose').addEventListener('click', closeDialog);
-  overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeDialog(); });
-
-  // 키보드 접근성
-  document.addEventListener('keydown', e => {
-    if (overlay.hidden) return;
-    if (e.key === 'Escape') { e.preventDefault(); closeDialog(); return; }
-    if (e.key !== 'Tab') return;
-    const focusable = [...dialog.querySelectorAll(
-      'button:not([disabled]), a[href]:not([hidden])'
-    )].filter(el => el.getClientRects().length);
-    if (!focusable.length) { e.preventDefault(); return; }
-    const first = focusable[0], last = focusable[focusable.length - 1];
-    if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
-      e.preventDefault(); last.focus();
-    } else if (!e.shiftKey && (document.activeElement === last || document.activeElement === dialog)) {
-      e.preventDefault(); first.focus();
-    }
-  });
-  </script>
+  <script src="journal-club.js"></script>
 </body>
 </html>
