@@ -23,10 +23,10 @@ C Date               : 발표일. Google Sheets 날짜 셀 또는 2026.11.08 형
 D Presenter          : 발표자.
 E posterTitle        : 포스터가 없을 때 표시할 제목. 셀 내부 줄바꿈 또는 \n 사용 가능.
 F poster(drive link) : 포스터 이미지 URL. 없으면 비워 둡니다.
-G photo1             : 현장 사진 URL 1.
-H photo2             : 현장 사진 URL 2.
-I photo3             : 현장 사진 URL 3.
-J ppt                : PPT/PDF/Google Slides 열람 URL.
+G photo1(drive link) : 현장 사진 URL 1. 기존 photo1 열 이름도 지원합니다.
+H photo2(drive link) : 현장 사진 URL 2. 기존 photo2 열 이름도 지원합니다.
+I photo3(drive link) : 현장 사진 URL 3. 기존 photo3 열 이름도 지원합니다.
+J ppt(drive link)    : PPT/PDF/Google Slides 열람 URL. 기존 ppt 열 이름도 지원합니다.
 
 자료 링크
 - URL을 셀 값으로 직접 붙여넣습니다. 파일 칩이나 링크 표시 문구 대신 전체 주소를 입력합니다.

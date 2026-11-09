@@ -95,9 +95,9 @@
         speaker: text(row.Presenter ?? row.speaker) || '발표자 미정',
         posterTitle: (text(row.posterTitle) || title).replace(/\\n/g, '\n'),
         poster: safeURL(row['poster(drive link)'] ?? row.poster, true),
-        photos: (photos || [row.photo1, row.photo2, row.photo3])
+        photos: (photos || [1, 2, 3].map(index => row[`photo${index}(drive link)`] ?? row[`photo${index}`]))
           .map(value => safeURL(value, true)).filter(Boolean).slice(0, 3),
-        ppt: safeURL(row.ppt)
+        ppt: safeURL(row['ppt(drive link)'] ?? row.ppt)
       };
     }).sort((a, b) => b.number - a.number);
   }

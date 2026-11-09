@@ -247,6 +247,39 @@ test('current Sheet date text and empty optional cells display correctly', async
   assert.equal(elements.sessionPpt.hidden, true);
 });
 
+test('photo and PPT headers with (drive link) load media instead of the registration placeholder', async () => {
+  const { elements, errors } = createPage(async () => response([
+    {
+      Number: '2', Title: 'Talk with two photos', Date: '2026.11.09', Presenter: '',
+      'photo1(drive link)': 'https://drive.google.com/file/d/photo-one/view?usp=drive_link',
+      'photo2(drive link)': 'https://drive.google.com/file/d/photo-two/view?usp=drive_link',
+      'photo3(drive link)': '',
+      'ppt(drive link)': 'https://drive.google.com/file/d/slides/view?usp=drive_link'
+    },
+    {
+      Number: '1', Title: 'Talk with only photo3', Date: '2026.11.08', Presenter: '',
+      'photo1(drive link)': '', 'photo2(drive link)': '',
+      'photo3(drive link)': 'https://drive.google.com/file/d/photo-three/view?usp=drive_link',
+      'ppt(drive link)': ''
+    }
+  ]));
+  elements.openJournalClub.click();
+  await settle();
+  assert.equal(errors.length, 0);
+  assert.equal(elements.photoGallery.children.length, 2);
+  assert.equal(elements.photoGallery.children[0].children[0].src,
+    'https://drive.google.com/thumbnail?id=photo-one&sz=w1600');
+  assert.equal(elements.photoGallery.children[1].children[0].children[0].src,
+    'https://drive.google.com/thumbnail?id=photo-two&sz=w1600');
+  assert.equal(elements.sessionPpt.hidden, false);
+  assert.equal(elements.sessionPpt.href, 'https://drive.google.com/file/d/slides/view?usp=drive_link');
+  elements.sessionList.children[1].click();
+  assert.equal(elements.photoGallery.children.length, 1);
+  assert.equal(elements.photoGallery.children[0].children[0].src,
+    'https://drive.google.com/thumbnail?id=photo-three&sz=w1600');
+  assert.equal(elements.sessionPpt.hidden, true);
+});
+
 test('two presentations with the same Number both load and remain separately selectable', async () => {
   // Regression: the live Sheet has two talks under session 4 on the same date.
   const { elements, errors } = createPage(async () => response([
