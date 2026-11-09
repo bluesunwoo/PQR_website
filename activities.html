@@ -156,8 +156,18 @@
     .jc-retry[hidden] { display: none; }
 
     .jc-media-fallback { margin: 0; padding: 24px; color: #76859a; font-size: 12px; }
-    .jc-poster-image { display: block; width: 100%; height: 100%; object-fit: contain; background: #eef2f7; }
-    .jc-gallery-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .jc-poster-image, .jc-gallery-image {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      object-fit: contain;
+      object-position: center;
+      background: #eef2f7;
+    }
 
     .jc-sidebar {
       padding: 22px 14px;
@@ -308,6 +318,8 @@
       align-items: start;
     }
 
+    .jc-media-layout > section { min-width: 0; }
+
     .jc-section-heading {
       color: #56657a;
       font-weight: 800;
@@ -322,7 +334,10 @@
 
     /* 포스터 */
     .jc-poster {
-      height: 290px;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 210 / 297;
+      margin-inline: auto;
       border-radius: 9px;
       overflow: hidden;
       position: relative;
@@ -418,7 +433,9 @@
 
     /* 갤러리 */
     .jc-gallery-main {
-      height: 180px;
+      width: 100%;
+      min-width: 0;
+      aspect-ratio: 4 / 3;
       background: #eef2f7;
       border: 1px solid #e3e8ef;
       border-radius: 9px;
@@ -437,13 +454,17 @@
 
     .jc-gallery-thumbs {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-top: 8px;
     }
 
     .jc-gallery-thumb {
-      height: 100px;
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
       border: 1px dashed #d9e0e9;
       border-radius: 8px;
       background: #f5f7fa;
@@ -489,7 +510,6 @@
       .jc-content { grid-template-columns: 190px minmax(0, 1fr); }
       .jc-detail { padding: 22px 20px; }
       .jc-media-layout { gap: 12px; }
-      .jc-poster { height: 270px; }
     }
 
     @media (max-width: 650px) {
@@ -509,7 +529,6 @@
       .jc-sidebar-foot { display: none; }
       .jc-detail { padding: 18px 16px 28px; }
       .jc-media-layout { grid-template-columns: 1fr; }
-      .jc-poster { height: 300px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
